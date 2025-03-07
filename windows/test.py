@@ -1,58 +1,22 @@
-#pip install pywin32
 import ctypes
-from ctypes import wintypes
+from win32api import EnumDisplayDevices, EnumDisplaySettings, ChangeDisplaySettings
+from win32con import DM_DISPLAYFREQUENCY, CDS_UPDATEREGISTRY
 
-user32 = ctypes.WinDLL('user32', use_last_error=True)
+rr = 60  # 20 30 60 120 144
 
-ENUM_CURRENT_SETTINGS = -1
+device = EnumDisplayDevices(None, 0)  #1st monitor
+settings = EnumDisplaySettings(device.DeviceName, 0)
 
-class DEVMODE(ctypes.Structure):
-    _fields_ = [
-        ('dmDeviceName', wintypes.WCHAR * 32),
-        ('dmSpecVersion', wintypes.WORD),
-        ('dmDriverVersion', wintypes.WORD),
-        ('dmSize', wintypes.WORD),
-        ('dmDriverExtra', wintypes.WORD),
-        ('dmFields', wintypes.DWORD),
-        ('dmPositionX', wintypes.LONG),
-        ('dmPositionY', wintypes.LONG),
-        ('dmDisplayOrientation', wintypes.DWORD),
-        ('dmDisplayFixedOutput', wintypes.DWORD),
-        ('dmColor', wintypes.DWORD),
-        ('dmDuplex', wintypes.DWORD),
-        ('dmYResolution', wintypes.DWORD),
-        ('dmTTOption', wintypes.DWORD),
-        ('dmCollate', wintypes.DWORD),
-        ('dmFormName', wintypes.WCHAR * 32),
-        ('dmLogPixels', wintypes.DWORD),
-        ('dmBitsPerPel', wintypes.DWORD),
-        ('dmPelsWidth', wintypes.DWORD),
-        ('dmPelsHeight', wintypes.DWORD),
-        ('dmDisplayFlags', wintypes.DWORD),
-        ('dmDisplayFrequency', wintypes.DWORD),
-        ('dmICMMethod', wintypes.DWORD),
-        ('dmICMIntent', wintypes.DWORD),
-        ('dmMediaType', wintypes.DWORD),
-        ('dmDitherType', wintypes.DWORD),
-        ('dmReserved1', wintypes.DWORD),
-        ('dmReserved2', wintypes.DWORD),
-        ('dmPanningWidth', wintypes.DWORD),
-        ('dmPanningHeight', wintypes.DWORD),
-    ]
+original_bpp = settings.BitsPerPel
 
-def set_refresh_rate(rate):
-    dm = DEVMODE()
-    dm.dmSize = ctypes.sizeof(DEVMODE)
+settings.PelsWidth = 1920
+settings.PelsHeight = 1080
+settings.DisplayFrequency = rr  
+settings.BitsPerPel = original_bpp
 
-    if user32.EnumDisplaySettingsW(None, ENUM_CURRENT_SETTINGS, ctypes.byref(dm)):
-        dm.dmDisplayFrequency = rate
-        dm.dmFields |= 0x400000  # DM_DISPLAYFREQUENCY
+result = ChangeDisplaySettings(settings, CDS_UPDATEREGISTRY)
 
-        result = user32.ChangeDisplaySettingsW(ctypes.byref(dm), 0)
-        if result != 0:
-            print("Failed to change refresh rate")
-        else:
-            print(f"Refresh rate changed to {rate} Hz")
-
-desired_refresh_rate = 60  # Set the desired refresh rate here
-set_refresh_rate(desired_refresh_rate)
+if result == 0:
+    print(f"1920x1080, fps {rr}Hz")
+else:
+    print("error.")
