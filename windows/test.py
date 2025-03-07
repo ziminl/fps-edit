@@ -2,7 +2,7 @@ import ctypes
 from win32api import EnumDisplayDevices, EnumDisplaySettings, ChangeDisplaySettings
 from win32con import DM_DISPLAYFREQUENCY, CDS_UPDATEREGISTRY
 
-rr = 60  # 20 30 60 120 144
+rr = 60  # 24 50 60 100 120 144
 
 device = EnumDisplayDevices(None, 0)  #1st monitor
 settings = EnumDisplaySettings(device.DeviceName, 0)
